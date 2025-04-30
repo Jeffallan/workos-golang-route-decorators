@@ -3,7 +3,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -15,14 +14,11 @@ import (
 	"github.com/rs/cors"
 
 	"workos-golang-route-decorators/server/middleware" 
-	"workos-golang-route-decorators/server/models"
 	"workos-golang-route-decorators/server/wrappers"
+	"workos-golang-route-decorators/server/constants"
+	"workos-golang-route-decorators/server/controllers"
 )
 
-// --- Context Key for JWT Claims ---
-type contextKey string
-
-const claimsContextKey = contextKey("jwtClaims")
 
 // --- Logging Middleware (Existing) ---
 func loggingMiddleware(next http.Handler) http.Handler {
@@ -71,7 +67,7 @@ func jwtAuthMiddleware() func(http.Handler) http.Handler {
 			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 				log.Printf("JWT Auth Middleware: Token validated successfully. Claims: %v", claims)
 				// Add claims to request context
-				ctx := context.WithValue(r.Context(), claimsContextKey, claims)
+				ctx := context.WithValue(r.Context(), constants.GetJWTContextKey(), claims)
 				// Create a new request with the updated context
 				newReq := r.WithContext(ctx)
 				// Call the next handler with the new request
@@ -86,38 +82,6 @@ func jwtAuthMiddleware() func(http.Handler) http.Handler {
 }
 
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
-
-	var extraContextValue string
-	if val, ok := r.Context().Value("extra_context").(string); ok {
-		extraContextValue = val
-	}
-
-	res := models.ResponseModel{
-		Message:       "Hello, from the server!",
-		ExtraContext:  extraContextValue,
-		ClaimsMessage: r.Context().Value(claimsContextKey).(jwt.MapClaims), 
-	}
-
-	jsonData, err := json.Marshal(res)
-	if err != nil {
-		log.Printf("Error marshalling JSON: %v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_, err = w.Write(jsonData)
-	if err != nil {
-		log.Printf("Error writing response: %v", err)
-	}
-}
-
 func main() {
 
 	envErr := godotenv.Load("../.env.local")
@@ -126,7 +90,7 @@ func main() {
 	}
 
 	// --- Handler Route Registration ---
-	http.HandleFunc("/", wrappers.BasicWrapper(rootHandler))
+	http.HandleFunc("/", wrappers.BasicWrapper(controllers.RootHandler))
 
 	// --- CORS Configuration ---
 	c := cors.New(cors.Options{

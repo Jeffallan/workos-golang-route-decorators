@@ -2,14 +2,15 @@ package controllers
 
 import (
 	"net/http"
+	"encoding/json"
+	"log"
+	"github.com/golang-jwt/jwt/v5"
 	"workos-golang-route-decorators/server/models"
+	"workos-golang-route-decorators/server/constants"
+
 )
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
+func RootHandler(w http.ResponseWriter, r *http.Request) {
 
 	var extraContextValue string
 	if val, ok := r.Context().Value("extra_context").(string); ok {
@@ -19,7 +20,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	res := models.ResponseModel{
 		Message:       "Hello, from the server!",
 		ExtraContext:  extraContextValue,
-		ClaimsMessage: r.Context().Value(claimsContextKey).(jwt.MapClaims), 
+		ClaimsMessage: r.Context().Value(constants.GetJWTContextKey()).(jwt.MapClaims), 
 	}
 
 	jsonData, err := json.Marshal(res)
