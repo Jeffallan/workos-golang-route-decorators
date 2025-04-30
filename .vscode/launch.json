@@ -1,0 +1,19 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Server (main.go)", // Name displayed in VS Code Debug panel
+            "type": "go",                     // Use the Go debugger extension
+            "request": "launch",              // We want VS Code to launch the program
+            "mode": "auto",                   // Let the extension choose build/debug mode
+            "program": "${workspaceFolder}/server/main.go", // Path to the main Go file relative to the workspace root
+            "cwd": "${workspaceFolder}/server", // Set the working directory to the server folder (optional but good practice)
+            "env": {},                        // Environment variables (if needed)
+            "args": []                        // Command-line arguments (if needed)
+        }
+        // You can add more configurations here later if needed
+    ]
+}

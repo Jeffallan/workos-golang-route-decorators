@@ -36,6 +36,9 @@ export default function Layout() {
                         <Button asChild variant="soft">
                           <Link to="/account">Account</Link>
                         </Button>
+                        <Button asChild variant="soft">
+                          <Link to="/api-routes">Api Routes</Link>
+                        </Button>
                       </Flex>
 
                       <SignInButton />
