@@ -1,26 +1,37 @@
 package controllers
 
 import (
-	"net/http"
 	"encoding/json"
 	"log"
-	"github.com/golang-jwt/jwt/v5"
-	"workos-golang-route-decorators/server/models"
-	"workos-golang-route-decorators/server/constants"
+	"net/http"
 
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/julienschmidt/httprouter" // Import httprouter
+	"workos-golang-route-decorators/server/constants"
+	"workos-golang-route-decorators/server/models"
 )
 
-func RootHandler(w http.ResponseWriter, r *http.Request) {
+// RootHandler updated to httprouter.Handle signature
+func RootHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) { // Added _ httprouter.Params
 
 	var extraContextValue string
 	if val, ok := r.Context().Value("extra_context").(string); ok {
 		extraContextValue = val
 	}
 
+	// Safely get claims from context
+	claims, ok := r.Context().Value(constants.GetJWTContextKey()).(jwt.MapClaims)
+	if !ok {
+		log.Printf("RootHandler: Failed to get jwt.MapClaims from context.")
+		// Handle case where claims are missing - maybe return error or default claims
+		claims = jwt.MapClaims{"error": "claims missing"} // Example default
+	}
+
+
 	res := models.ResponseModel{
 		Message:       "Hello, from the server!",
 		ExtraContext:  extraContextValue,
-		ClaimsMessage: r.Context().Value(constants.GetJWTContextKey()).(jwt.MapClaims), 
+		ClaimsMessage: claims, // Assign the retrieved claims (or default)
 	}
 
 	jsonData, err := json.Marshal(res)
