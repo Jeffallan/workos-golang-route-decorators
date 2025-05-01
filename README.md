@@ -3,7 +3,7 @@
 An example application demonstrating how to authenticate users with AuthKit's React SDK.
 We build on that example by adding a Golang api server where we: 
    1) verify the JWT issues by WorkOS via JWKS and; 
-   2) add custom middle functions and decorators as a foundation for robust access control; leveraging Golang's `context.Context()`. 
+   2) add custom middleware functions and decorators as a foundation for robust access control; leveraging Golang's `context.Context()`. 
 
 ## Prerequisites
 
