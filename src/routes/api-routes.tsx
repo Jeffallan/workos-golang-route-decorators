@@ -1,4 +1,3 @@
-// /home/dmitry/projects/pocs/workos-golang-route-decorators/src/routes/api-routes.tsx
 import { Box, Flex, Heading, Text, Code, Spinner } from "@radix-ui/themes";
 import * as Accordion from '@radix-ui/react-accordion';
 import { useUser } from "../hooks/use-user";

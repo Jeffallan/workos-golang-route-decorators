@@ -87,12 +87,14 @@ func main() {
 	// --- Handler Route Registration ---
 	router := httprouter.New()
 
-	// Register routes directly using the refactored httprouter.Handle functions
+	userPath := fmt.Sprintf("/user/:%s", constants.GetUserID())
+	orgPath := fmt.Sprintf("/org/:%s", constants.GetOrgID())
+
 	// The nesting order defines the execution flow (outermost wrapper first)
 	router.GET("/", wrappers.BasicWrapper(controllers.RootHandler))
-	router.GET("/admin", wrappers.BasicWrapper(wrappers.IsAdmin(controllers.RootHandler))) // Apply BasicWrapper then IsAdmin
-	router.GET("/user/:user_id", wrappers.IsUserViaURL(controllers.RootHandler)) // Apply IsUserViaURL directly
-	router.GET("/org/:org_id", wrappers.IsOrgMemberViaURL(controllers.RootHandler)) // Apply IsOrgMemberViaURL directly
+	router.GET("/admin", wrappers.BasicWrapper(wrappers.IsAdmin(controllers.RootHandler))) 
+	router.GET(userPath, wrappers.IsUserViaURL(controllers.RootHandler))
+	router.GET(orgPath, wrappers.IsOrgMemberViaURL(controllers.RootHandler))
 
 	// --- CORS Configuration ---
 	c := cors.New(cors.Options{

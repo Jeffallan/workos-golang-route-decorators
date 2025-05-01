@@ -1,4 +1,3 @@
-// /home/dmitry/projects/pocs/workos-golang-route-decorators/server/wrappers/wrappers.go
 package wrappers
 
 import (
