@@ -1,4 +1,3 @@
-// server/main.go
 package main
 
 import (
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/julienschmidt/httprouter"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 
@@ -31,9 +31,9 @@ func loggingMiddleware(next http.Handler) http.Handler {
 }
 
 // --- JWT Authentication Middleware ---
-func jwtAuthMiddleware() func(http.Handler) http.Handler {
+func jwtAuthMiddleware(next http.Handler) http.Handler {
 	// Return the actual middleware handler function
-	return func(next http.Handler) http.Handler {
+	
 		// Return the http.HandlerFunc that processes each request
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			log.Println("JWT Auth Middleware: Checking token...")
@@ -79,8 +79,13 @@ func jwtAuthMiddleware() func(http.Handler) http.Handler {
 			}
 		})
 	}
-}
 
+	// Adapter for our route wrappers
+	func adapt(handler http.HandlerFunc) httprouter.Handle {
+		return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+			handler(w, r)
+		}
+	}
 
 func main() {
 
@@ -90,7 +95,12 @@ func main() {
 	}
 
 	// --- Handler Route Registration ---
-	http.HandleFunc("/", wrappers.BasicWrapper(controllers.RootHandler))
+	router := httprouter.New()
+
+	router.GET("/", adapt(wrappers.BasicWrapper(controllers.RootHandler)))
+	router.GET("/admin", adapt(wrappers.IsAdmin(controllers.RootHandler)))
+	router.GET("/user/:user_id", adapt(wrappers.IsUserViaURL(controllers.RootHandler)))
+	router.GET("/org/:org_id", adapt(wrappers.IsOrgMemberViaURL(controllers.RootHandler)))
 
 	// --- CORS Configuration ---
 	c := cors.New(cors.Options{
@@ -98,12 +108,12 @@ func main() {
 		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowCredentials: true,
-		Debug:            true,
+		Debug:            false,
 	})
 
 	// --- Global Middleware Setup (Order Matters!) ---
-	var handler http.Handler = http.DefaultServeMux
-	handler = jwtAuthMiddleware()(handler)
+	var handler http.Handler = router
+	handler = jwtAuthMiddleware(handler)
 	handler = loggingMiddleware(handler)
 	handler = c.Handler(handler)
 
